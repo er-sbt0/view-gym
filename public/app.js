@@ -186,7 +186,7 @@ $('#player-delete').addEventListener('click', async () => {
 
 // ---------- editor (add / edit) ----------
 
-const editor = { mode: 'add', video: null, preview: null, muscles: new Set(), equipment: new Set() };
+const editor = { mode: 'add', video: null, preview: null, suggested: null, muscles: new Set(), equipment: new Set() };
 
 function renderPicker(containerSel, key) {
   const box = $(containerSel);
@@ -248,6 +248,7 @@ function openEditor(video = null) {
   editor.mode = video ? 'edit' : 'add';
   editor.video = video;
   editor.preview = null;
+  editor.suggested = null;
   editor.muscles = new Set(video?.muscles || []);
   editor.equipment = new Set(video?.equipment || []);
 
@@ -269,6 +270,20 @@ function openEditor(video = null) {
   (video ? $('#exercise') : $('#url')).focus();
 }
 
+const sameSet = (set, list) => set.size === list.length && list.every((x) => set.has(x));
+
+// Fill tag fields from the title-based guess, but only fields the user hasn't changed
+// since the last guess (so pasting a different URL re-guesses, while edits are kept).
+function applySuggestion(next) {
+  const prev = editor.suggested || { exercise: '', muscles: [], equipment: [] };
+  if ($('#exercise').value.trim() === prev.exercise) $('#exercise').value = next.exercise;
+  if (sameSet(editor.muscles, prev.muscles)) editor.muscles = new Set(next.muscles);
+  if (sameSet(editor.equipment, prev.equipment)) editor.equipment = new Set(next.equipment);
+  editor.suggested = next;
+  renderPicker('#muscle-picker', 'muscles');
+  renderPicker('#equipment-picker', 'equipment');
+}
+
 let previewSeq = 0;
 async function loadPreview() {
   const url = $('#url').value.trim();
@@ -288,6 +303,7 @@ async function loadPreview() {
     }
     editor.preview = meta;
     showPreview(meta);
+    if (meta.suggested) applySuggestion(meta.suggested);
     $('#is-short').checked = meta.isShort;
     $('#tag-fields').hidden = false;
     $('#save-btn').disabled = false;

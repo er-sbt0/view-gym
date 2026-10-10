@@ -4,22 +4,13 @@ import { readFile, writeFile, rename, mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fetchVideoMeta, parseYouTubeId } from './lib/youtube.js';
+import { inferTags } from './lib/infer.js';
+import { PRESETS } from './lib/presets.js';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = process.env.DATA_FILE || join(ROOT, 'data', 'videos.json');
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '127.0.0.1';
-
-const PRESETS = {
-  muscles: ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Forearms', 'Core',
-    'Quads', 'Hamstrings', 'Glutes', 'Calves', 'Full Body'],
-  equipment: ['Barbell', 'Dumbbell', 'Kettlebell', 'Cable', 'Machine', 'Smith Machine',
-    'Bodyweight', 'Bands', 'EZ Bar', 'Trap Bar'],
-  exercises: ['Squat', 'Front Squat', 'Deadlift', 'Romanian Deadlift', 'Bench Press',
-    'Incline Bench Press', 'Overhead Press', 'Pull-up', 'Chin-up', 'Barbell Row',
-    'Dumbbell Row', 'Lat Pulldown', 'Hip Thrust', 'Lunge', 'Bulgarian Split Squat',
-    'Leg Press', 'Bicep Curl', 'Tricep Extension', 'Lateral Raise', 'Dip', 'Plank'],
-};
 
 let videos = [];
 
@@ -75,7 +66,7 @@ app.post('/api/preview', async (req, res) => {
   try {
     const meta = await fetchVideoMeta(req.body.url);
     const existing = videos.find((v) => v.ytId === meta.ytId);
-    res.json({ ...meta, duplicateOf: existing?.id ?? null });
+    res.json({ ...meta, suggested: inferTags(meta.title), duplicateOf: existing?.id ?? null });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
