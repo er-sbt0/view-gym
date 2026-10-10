@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>View Gym</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="logo">View<span>Gym</span></h1>
+    <input id="search" type="search" placeholder="Search title, channel, exercise…" autocomplete="off">
+    <button id="add-btn" class="btn primary">+ Add video</button>
+  </header>
+
+  <section class="filters">
+    <div class="filter-row">
+      <div class="segmented" id="type-filter">
+        <button data-type="all" class="active">All</button>
+        <button data-type="short">Shorts</button>
+        <button data-type="long">Videos</button>
+      </div>
+      <select id="exercise-filter"><option value="">All exercises</option></select>
+      <span id="count" class="muted"></span>
+      <button id="clear-filters" class="btn link" hidden>Clear filters</button>
+    </div>
+    <div class="filter-row"><span class="label">Muscle</span><div id="muscle-chips" class="chips"></div></div>
+    <div class="filter-row"><span class="label">Equipment</span><div id="equipment-chips" class="chips"></div></div>
+  </section>
+
+  <main>
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="empty" hidden></div>
+  </main>
+
+  <dialog id="player" class="modal">
+    <div class="player-layout">
+      <div id="player-frame" class="player-frame"></div>
+      <div class="player-info">
+        <button class="close" data-close aria-label="Close">×</button>
+        <h2 id="player-title"></h2>
+        <a id="player-channel" class="muted" target="_blank" rel="noopener"></a>
+        <div id="player-tags" class="tags"></div>
+        <div class="player-actions">
+          <a id="player-yt" class="btn" target="_blank" rel="noopener">Open on YouTube</a>
+          <button id="player-edit" class="btn">Edit</button>
+          <button id="player-delete" class="btn danger">Delete</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="editor" class="modal narrow">
+    <form id="editor-form" method="dialog">
+      <button type="button" class="close" data-close aria-label="Close">×</button>
+      <h2 id="editor-heading">Add video</h2>
+
+      <label class="field" id="url-field">
+        <span>YouTube URL</span>
+        <input id="url" type="text" placeholder="https://youtube.com/shorts/…" autocomplete="off">
+      </label>
+      <div id="preview" class="preview" hidden></div>
+      <p id="editor-error" class="error" hidden></p>
+
+      <div id="tag-fields" hidden>
+        <label class="field">
+          <span>Exercise</span>
+          <input id="exercise" type="text" list="exercise-list" placeholder="e.g. Romanian Deadlift" autocomplete="off">
+          <datalist id="exercise-list"></datalist>
+        </label>
+        <div class="field">
+          <span>Muscle groups</span>
+          <div id="muscle-picker" class="chips picker"></div>
+        </div>
+        <div class="field">
+          <span>Equipment</span>
+          <div id="equipment-picker" class="chips picker"></div>
+        </div>
+        <label class="field inline">
+          <input id="is-short" type="checkbox"> <span>This is a Short</span>
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="submit" id="save-btn" class="btn primary" disabled>Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
