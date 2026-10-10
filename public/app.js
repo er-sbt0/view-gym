@@ -182,7 +182,6 @@ $('#player-edit').addEventListener('click', () => {
 });
 
 async function deleteVideo(v) {
-  if (!confirm(`Delete “${v.exercise || v.title}” from the catalog?`)) return false;
   try {
     await api(`/api/videos/${v.id}`, { method: 'DELETE' });
   } catch (err) {
