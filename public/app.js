@@ -3,7 +3,7 @@ const $ = (sel) => document.querySelector(sel);
 const state = {
   videos: [],
   presets: { muscles: [], equipment: [], exercises: [] },
-  filters: { q: '', type: 'all', exercise: '', muscles: new Set(), equipment: new Set() },
+  filters: { q: '', exercise: '', muscles: new Set(), equipment: new Set() },
   playing: null,
 };
 
@@ -52,8 +52,6 @@ function countBy(key) {
 
 function matches(v) {
   const f = state.filters;
-  if (f.type === 'short' && !v.isShort) return false;
-  if (f.type === 'long' && v.isShort) return false;
   if (f.exercise && v.exercise !== f.exercise) return false;
   if (f.muscles.size && !v.muscles.some((m) => f.muscles.has(m))) return false;
   if (f.equipment.size && !v.equipment.some((e) => f.equipment.has(e))) return false;
@@ -99,7 +97,6 @@ function card(v) {
   return el('article', { class: 'card', onclick: () => openPlayer(v) },
     el('div', { class: `thumb${v.isShort ? ' short' : ''}` },
       el('img', { src: v.thumbnail, alt: '', loading: 'lazy' }),
-      el('span', { class: `badge${v.isShort ? ' short' : ''}` }, v.isShort ? 'Short' : 'Video'),
       el('div', { class: 'play' }, '▶'),
       el('button', {
         class: 'card-delete',
@@ -128,13 +125,11 @@ function render() {
   renderFilterChips('#muscle-chips', 'muscles');
   renderFilterChips('#equipment-chips', 'equipment');
   renderExerciseFilter();
-  document.querySelectorAll('#type-filter button').forEach((b) =>
-    b.classList.toggle('active', b.dataset.type === f.type));
 
   const list = state.videos.filter(matches);
   $('#grid').replaceChildren(...list.map(card));
 
-  const anyFilter = f.q || f.type !== 'all' || f.exercise || f.muscles.size || f.equipment.size;
+  const anyFilter = f.q || f.exercise || f.muscles.size || f.equipment.size;
   $('#clear-filters').hidden = !anyFilter;
   $('#count').textContent = `${list.length} of ${state.videos.length}`;
 
@@ -269,7 +264,6 @@ function openEditor(video = null) {
   $('#url-field').hidden = !!video;
   $('#url').value = '';
   $('#exercise').value = video?.exercise || '';
-  $('#is-short').checked = !!video?.isShort;
   $('#tag-fields').hidden = !video;
   $('#save-btn').disabled = !video;
   $('#preview').hidden = true;
@@ -317,7 +311,6 @@ async function loadPreview() {
     editor.preview = meta;
     showPreview(meta);
     if (meta.suggested) applySuggestion(meta.suggested);
-    $('#is-short').checked = meta.isShort;
     $('#tag-fields').hidden = false;
     $('#save-btn').disabled = false;
     $('#exercise').focus();
@@ -340,7 +333,6 @@ $('#editor-form').addEventListener('submit', async (e) => {
     exercise: $('#exercise').value.trim(),
     muscles: [...editor.muscles],
     equipment: [...editor.equipment],
-    isShort: $('#is-short').checked,
   };
   $('#save-btn').disabled = true;
   try {
@@ -375,18 +367,13 @@ $('#search').addEventListener('input', (e) => {
   render();
 });
 
-$('#type-filter').addEventListener('click', (e) => {
-  const t = e.target.closest('button')?.dataset.type;
-  if (t) { state.filters.type = t; render(); }
-});
-
 $('#exercise-filter').addEventListener('change', (e) => {
   state.filters.exercise = e.target.value;
   render();
 });
 
 $('#clear-filters').addEventListener('click', () => {
-  Object.assign(state.filters, { q: '', type: 'all', exercise: '', muscles: new Set(), equipment: new Set() });
+  Object.assign(state.filters, { q: '', exercise: '', muscles: new Set(), equipment: new Set() });
   $('#search').value = '';
   render();
 });
