@@ -101,6 +101,12 @@ function card(v) {
       el('img', { src: v.thumbnail, alt: '', loading: 'lazy' }),
       el('span', { class: `badge${v.isShort ? ' short' : ''}` }, v.isShort ? 'Short' : 'Video'),
       el('div', { class: 'play' }, '▶'),
+      el('button', {
+        class: 'card-delete',
+        title: 'Delete',
+        'aria-label': 'Delete video',
+        onclick: (e) => { e.stopPropagation(); deleteVideo(v); },
+      }, '×'),
     ),
     el('div', { class: 'card-body' },
       v.exercise ? el('div', { class: 'card-exercise' }, v.exercise) : null,
@@ -175,13 +181,21 @@ $('#player-edit').addEventListener('click', () => {
   openEditor(v);
 });
 
-$('#player-delete').addEventListener('click', async () => {
-  const v = state.playing;
-  if (!confirm(`Delete “${v.exercise || v.title}” from the catalog?`)) return;
-  await api(`/api/videos/${v.id}`, { method: 'DELETE' });
+async function deleteVideo(v) {
+  if (!confirm(`Delete “${v.exercise || v.title}” from the catalog?`)) return false;
+  try {
+    await api(`/api/videos/${v.id}`, { method: 'DELETE' });
+  } catch (err) {
+    alert(`Could not delete: ${err.message}`);
+    return false;
+  }
   state.videos = state.videos.filter((x) => x.id !== v.id);
-  $('#player').close();
   render();
+  return true;
+}
+
+$('#player-delete').addEventListener('click', async () => {
+  if (await deleteVideo(state.playing)) $('#player').close();
 });
 
 // ---------- editor (add / edit) ----------
